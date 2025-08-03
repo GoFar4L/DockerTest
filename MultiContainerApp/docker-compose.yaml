@@ -16,7 +16,18 @@ services:
       - MYSQL_PASSWORD=${MYSQL_USER_PASSWORD}
     networks:
       - wp-db-bridge
+    mem_limit: 128m
 
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   wordpress:
     image: wordpress:latest
     restart: always
@@ -31,9 +42,25 @@ services:
       - wp-db-bridge
       - external-network
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    mem_limit: 256m
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
   proxy:
-    image: nginx
+    build:
+      context: ./.docker/nginx
+      dockerfile: Dockerfile
     restart: always
     ports:
       - "443:443"
@@ -43,9 +70,20 @@ services:
     networks:
       - external-network
     depends_on:
-      - db
-      - wordpress
-
+      wordpress:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-kf", "https://localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   data:
