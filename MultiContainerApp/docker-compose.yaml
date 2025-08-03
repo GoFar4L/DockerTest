@@ -16,7 +16,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_USER_PASSWORD}
     networks:
       - wp-db-bridge
-    mem_limit: 128m
+    mem_limit: 256m
 
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
@@ -44,7 +44,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    mem_limit: 256m
+    mem_limit: 512m
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 10s
