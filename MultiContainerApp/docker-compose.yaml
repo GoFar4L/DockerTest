@@ -86,8 +86,8 @@ services:
 volumes:
   data:
     name: MCApp_data
-  pages:
-    name: MCApp_pages
+  web:
+    name: MCApp_web
 
 networks:
   wp-db-bridge:
