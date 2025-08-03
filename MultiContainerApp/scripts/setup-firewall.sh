@@ -1,11 +1,10 @@
 #!/bin/bash
 # Make this file an executable before using it (chmod +x)
+# Make sure to run apt update before launching the script
 
 set -e
 
 echo "🛡Configuring UFW firewall..."
-
-sudo apt update
 sudo apt install -y ufw
 
 sudo ufw default deny incoming
