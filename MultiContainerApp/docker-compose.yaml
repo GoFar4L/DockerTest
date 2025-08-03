@@ -1,0 +1,57 @@
+# When this name is defined it is exposed for interpolation and enviroment variable
+# resolution as "COMPOSE_PROJECT_NAME"
+name: "MCApp"
+
+services:
+  db:
+    image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE_NAME}
+      - MYSQL_USER=${MYSQL_USER_NAME}
+      - MYSQL_PASSWORD=${MYSQL_USER_PASSWORD}
+    networks:
+      - wp-db-bridge
+
+  wordpress:
+    image: wordpress:latest
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=${MYSQL_USER_NAME}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_USER_PASSWORD}
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE_NAME}
+    volumes:
+      - pages:/var/www/html
+    networks:
+      - wp-db-bridge
+      - external-network
+    depends_on:
+      - db
+  proxy:
+    image: nginx
+    restart: always
+    networks:
+      - external-network
+    depends_on:
+      - db
+      - wordpress
+
+
+volumes:
+  data:
+  pages:
+
+networks:
+  wp-db-bridge:
+    driver: bridge
+    internal: true
+  external-network:
+    driver: bridge
+    internal: false
+
+
