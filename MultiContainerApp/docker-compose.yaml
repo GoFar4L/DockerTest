@@ -44,7 +44,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    mem_limit: 512m
+    mem_limit: 256m
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 10s
