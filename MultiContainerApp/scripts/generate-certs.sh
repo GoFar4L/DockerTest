@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-CERT_DIR="../.docker/nginx/certs"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CERT_DIR="$PROJECT_ROOT/.docker/nginx/certs"
 
 echo "Generating self-signed SSL certificate..."
 
