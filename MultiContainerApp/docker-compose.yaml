@@ -7,7 +7,7 @@ services:
     image: mysql:8.0.27
     command: '--default-authentication-plugin=mysql_native_password'
     volumes:
-      - MCApp_data:/var/lib/mysql
+      - data:/var/lib/mysql
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -37,7 +37,7 @@ services:
       - WORDPRESS_DB_PASSWORD=${MYSQL_USER_PASSWORD}
       - WORDPRESS_DB_NAME=${MYSQL_DATABASE_NAME}
     volumes:
-      - MCApp_web:/var/www/html
+      - web:/var/www/html
     networks:
       - wp-db-bridge
       - external-network
@@ -84,8 +84,10 @@ services:
         max-file: "3"
 
 volumes:
-  MCApp_data:
-  MCApp_web:
+  data:
+    name: MCApp_data
+  pages:
+    name: MCApp_pages
 
 networks:
   wp-db-bridge:
