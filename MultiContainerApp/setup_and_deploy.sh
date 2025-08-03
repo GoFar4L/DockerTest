@@ -24,7 +24,7 @@ else
 fi
 
 # Step 3: Start Docker containers
-if [[ -f docker-compose.yml ]]; then
+if [[ -f docker-compose.yaml ]]; then
     echo "Launching Docker containers..."
     docker-compose up -d
     echo "Docker environment is up and running."
