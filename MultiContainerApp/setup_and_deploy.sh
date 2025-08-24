@@ -26,7 +26,12 @@ fi
 # Step 3: Start Docker containers
 if [[ -f docker-compose.yaml ]]; then
     echo "Launching Docker containers..."
-    docker compose up -d
+    # Check if --build is passed as an argument
+    if [[ "$1" == "--build" ]]; then
+        docker compose up -d --build
+    else
+        docker compose up -d
+    fi
     echo "Docker environment is up and running."
 else
     echo "docker-compose.yml not found in the current directory."
