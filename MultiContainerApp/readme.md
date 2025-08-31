@@ -1,46 +1,149 @@
-# WordPress Docker Project
-This project sets up a WordPress website using Docker, with WordPress running in one container, MySQL as the database in another, and Nginx as a reverse proxy to glue everything together.
+# MultiContainerApp
 
-## Prerequisites
-- **Docker**: Version 28.3.2
-- **Host OS**: Ubuntu 25
-- **Docker Compose**: Ensure installed for orchestrating containers
+MultiContainerApp is a production-ready multi-container environment for running **WordPress** with a **MySQL** backend, fronted by an **NGINX reverse proxy** configured with HTTPS using self-signed certificates.
 
-## Project Structure
-- `docker-compose.yml`: Defines WordPress, MySQL, and Nginx services
-- `nginx/`: Contains Nginx configuration files (e.g., `nginx.conf`)
-- `wordpress/`: WordPress application files (optional, for customizations)
-- `mysql/`: MySQL data persistence (optional, for data storage)
+The project includes automation scripts for:
 
-## Setup
-1. Clone this repository:
+* Generating self-signed TLS certificates.
+* Configuring the firewall (allowing only SSH and HTTPS).
+* Deploying the environment via Docker Compose.
+
+---
+
+## 📂 Project Structure
+
+```
+MultiContainerApp/
+│
+├── docker-compose.yaml          # Main Docker Compose configuration
+├── setup_and_deploy.sh          # Master script for setup and deployment
+│
+├── MCApp_web                    # Volume for wordpress
+├── MCApp_data                   # Volume for DB
+│
+│
+├── scripts/                     # Utility scripts
+│   ├── generate-certs.sh        # Generates self-signed SSL certificates
+│   └── setup-firewall.sh        # Configures firewall (opens SSH and HTTPS only)
+│
+└── .docker/
+    └── nginx/
+        ├── Dockerfile           # Custom NGINX image
+        ├── nginx.conf           # NGINX configuration (redirects HTTP → HTTPS)
+        └── certs/               # Generated TLS certificates
+```
+
+---
+
+## ⚙️ Requirements
+
+Before deploying, ensure the following are installed on your Ubuntu server:
+
+* [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
+* [Docker Compose Plugin](https://docs.docker.com/compose/install/linux/)
+* `ufw` (Uncomplicated Firewall) for firewall configuration
+* `openssl` (for certificate generation)
+
+---
+
+## 📄 Environment Variables
+
+You must create a `.env` file inside the root directory (`MultiContainerApp/`).
+This file contains environment variables used by Docker Compose.
+
+Example `.env` file:
+
+```env
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_DATABASE=wordpress
+MYSQL_USER=wp_user
+MYSQL_PASSWORD=secure_password
+```
+
+⚠️ Replace the placeholders with strong, secure values before running in production.
+
+---
+
+## 🚀 Deployment Instructions
+
+1. **Clone the repository or upload the project folder to your server**:
+
    ```bash
-   git clone <repository-url>
-   cd <repository-folder>
+   git clone <your-repo-url>
+   cd MultiContainerApp
    ```
-2. Create a `docker-compose.yml` with the following services:
-   - **WordPress**: Official WordPress image, linked to MySQL
-   - **MySQL**: Official MySQL image for WordPress database
-   - **Nginx**: Official Nginx image, configured as a reverse proxy
-3. Configure Nginx in `nginx/nginx.conf` to proxy requests to the WordPress container.
-4. Run the stack:
+
+2. **Make the setup script executable**:
+
    ```bash
-   docker-compose up -d
+   chmod +x setup_and_deploy.sh
+   chmod +x scripts/*.sh
    ```
 
-## Usage
-- Access the WordPress site at `http://<host-ip>` or `http://localhost`.
-- Complete WordPress setup via the web interface, using MySQL credentials defined in `docker-compose.yml`.
+3. **Source your environment file** (so variables are available in your session):
 
-## Notes
-- Ensure ports (e.g., 80 for Nginx, 3306 for MySQL) are not in use on the host.
-- Persist MySQL data by mounting a volume in `docker-compose.yml`.
-- Customize WordPress themes/plugins by mounting volumes to the WordPress container.
+   ```bash
+   source .env
+   ```
 
-## To-Do
-- Add SSL/TLS support for Nginx.
-- Implement backup scripts for MySQL.
-- Add environment variables for easier configuration.
+4. **Run the setup and deploy script**:
 
-## License
-MIT License
+   ```bash
+   ./setup_and_deploy.sh
+   ```
+
+   To rebuild images before starting:
+
+   ```bash
+   ./setup_and_deploy.sh --build
+   ```
+
+   This will:
+
+   * Generate SSL certificates and place them in `.docker/nginx/certs/`
+   * Configure the firewall (allow only SSH + HTTPS)
+   * Start all Docker containers in detached mode
+
+---
+
+## 🌐 Accessing the Application
+
+* Once deployment is complete, the application is accessible at:
+
+  ```
+  https://<your-server-ip>/
+  ```
+
+* All HTTP requests are automatically redirected to HTTPS.
+
+* Since the certificates are **self-signed**, your browser will show a security warning on first access. Accept the warning to continue.
+
+---
+
+## 🔧 Management
+
+* **View logs**:
+
+  ```bash
+  docker compose logs -f
+  ```
+
+* **Stop services**:
+
+  ```bash
+  docker compose down
+  ```
+
+* **Rebuild & restart**:
+
+  ```bash
+  ./setup_and_deploy.sh --build
+  ```
+
+---
+
+## 🔐 Security Notes
+
+* Only **port 22 (SSH)** and **port 443 (HTTPS)** are open on the server.
+* HTTP traffic is redirected to HTTPS inside NGINX.
+* Replace self-signed certificates with certificates from [Let’s Encrypt](https://letsencrypt.org/) for production environments.
